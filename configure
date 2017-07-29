@@ -5,6 +5,11 @@ while true ; do
         break;
     fi
     case "$1" in
+        -name|--basename)
+            if [ -n $2 ]
+            then
+                basename=$2
+            fi ;;
         -www|--wwwroot)
             if [ -n $2 ]
             then
@@ -26,6 +31,11 @@ while true ; do
         break;
     fi
     case "$2" in
+        -name|--basename)
+            if [ -n $3 ]
+            then
+                basename=$3
+            fi ;;
         -www|--wwwroot)
             if [ -n $3 ]
             then
@@ -47,6 +57,11 @@ while true ; do
         break;
     fi
     case "$3" in
+        -name|--basename)
+            if [ -n $4 ]
+            then
+                basename=$4
+            fi ;;
         -www|--wwwroot)
             if [ -n $4 ]
             then
@@ -68,6 +83,11 @@ while true ; do
         break;
     fi
     case "$4" in
+        -name|--basename)
+            if [ -n $5 ]
+            then
+                basename=$5
+            fi ;;
         -www|--wwwroot)
             if [ -n $5 ]
             then
@@ -89,6 +109,11 @@ while true ; do
         break;
     fi
     case "$5" in
+        -name|--basename)
+            if [ -n $6 ]
+            then
+                basename=$6
+            fi ;;
         -www|--wwwroot)
             if [ -n $6 ]
             then
@@ -105,8 +130,43 @@ while true ; do
                 mysqlpassword=$6
             fi ;;
     esac
+    if [ $# = 6 ]
+    then
+        break;
+    fi
+    case "$6" in
+        -name|--basename)
+            if [ -n $7 ]
+            then
+                basename=$7
+            fi ;;
+        -www|--wwwroot)
+            if [ -n $7 ]
+            then
+                wwwroot=$7
+            fi ;;
+        -port|--serverport)
+            if [ -n $7 ]
+            then
+                serverport=$7
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $7 ]
+            then
+                mysqlpassword=$7
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $7 ]
+            then
+                mysqlpassword=$7
+            fi ;;
+    esac
     break;
 done
+if [ "$basename" = "" ]
+then
+    basename="leto"
+fi
 if [ "$wwwroot" = "" ]
 then
     mkdir wwwroot
@@ -124,29 +184,29 @@ echo "run:
 	docker build -t nginx nginx
 	docker build -t phpfpm phpfpm
 	docker build -t mysql mysql
-	docker run --name leto-redis -d daocloud.io/redis
-	docker run --name leto-mysql -e MYSQL_ROOT_PASSWORD=$mysqlpassword -d mysql
-	docker run --name leto-phpfpm --link leto-redis:redis --link leto-mysql:mysql -d -v $wwwroot:/app -d phpfpm
+	docker run --name $basename-redis -d daocloud.io/redis
+	docker run --name $basename-mysql -e MYSQL_ROOT_PASSWORD=$mysqlpassword -d mysql
+	docker run --name $basename-phpfpm --link $basename-redis:redis --link $basename-mysql:mysql -d -v $wwwroot:/app -d phpfpm
 
 stop:
-	docker stop leto-redis
-	docker stop leto-mysql
-	docker stop leto-phpfpm
-	docker stop leto-nginx
+	docker stop $basename-redis
+	docker stop $basename-mysql
+	docker stop $basename-phpfpm
+	docker stop $basename-nginx
 
 clean:
 	make stop
-	docker rm leto-redis
-	docker rm leto-mysql
-	docker rm leto-phpfpm
-	docker rm leto-nginx
+	docker rm $basename-redis
+	docker rm $basename-mysql
+	docker rm $basename-phpfpm
+	docker rm $basename-nginx
 
 restart:
-	docker restart leto-phpfpm
-	docker restart leto-redis
-	docker restart leto-mysql
-	docker restart leto-nginx
+	docker restart $basename-phpfpm
+	docker restart $basename-redis
+	docker restart $basename-mysql
+	docker restart $basename-nginx
 
 install:
-	docker run --name leto-nginx -p $serverport:80 --link leto-phpfpm:phpfpm --volumes-from leto-phpfpm -d nginx
+	docker run --name $basename-nginx -p $serverport:80 --link $basename-phpfpm:phpfpm --volumes-from $basename-phpfpm -d nginx
 	docker ps" > Makefile
