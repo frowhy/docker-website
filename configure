@@ -1,0 +1,151 @@
+#!/bin/bash
+while true ; do
+    if [ $# = 0 -o $# = 1 ]
+    then
+        break;
+    fi
+    case "$1" in
+        -www|--wwwroot)
+            if [ -n $2 ]
+            then
+                wwwroot=$2
+            fi ;;
+        -port|--serverport)
+            if [ -n $2 ]
+            then
+                serverport=$2
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $2 ]
+            then
+                mysqlpassword=$2
+            fi ;;
+    esac
+    if [ $# = 2 ]
+    then
+        break;
+    fi
+    case "$2" in
+        -www|--wwwroot)
+            if [ -n $3 ]
+            then
+                wwwroot=$3
+            fi ;;
+        -port|--serverport)
+            if [ -n $3 ]
+            then
+                serverport=$3
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $3 ]
+            then
+                mysqlpassword=$3
+            fi ;;
+    esac
+    if [ $# = 3 ]
+    then
+        break;
+    fi
+    case "$3" in
+        -www|--wwwroot)
+            if [ -n $4 ]
+            then
+                wwwroot=$4
+            fi ;;
+        -port|--serverport)
+            if [ -n $4 ]
+            then
+                serverport=$4
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $4 ]
+            then
+                mysqlpassword=$4
+            fi ;;
+    esac
+    if [ $# = 4 ]
+    then
+        break;
+    fi
+    case "$4" in
+        -www|--wwwroot)
+            if [ -n $5 ]
+            then
+                wwwroot=$5
+            fi ;;
+        -port|--serverport)
+            if [ -n $5 ]
+            then
+                serverport=$5
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $5 ]
+            then
+                mysqlpassword=$5
+            fi ;;
+    esac
+    if [ $# = 5 ]
+    then
+        break;
+    fi
+    case "$5" in
+        -www|--wwwroot)
+            if [ -n $6 ]
+            then
+                wwwroot=$6
+            fi ;;
+        -port|--serverport)
+            if [ -n $6 ]
+            then
+                serverport=$6
+            fi ;;
+        -pass|--mysqlpassword)
+            if [ -n $6 ]
+            then
+                mysqlpassword=$6
+            fi ;;
+    esac
+    break;
+done
+if [ "$wwwroot" = "" ]
+then
+    mkdir wwwroot
+    wwwroot=`pwd`/wwwroot
+fi
+if [ "$serverport" = "" ]
+then
+    serverport=80
+fi
+if [ "$mysqlpassword" = "" ]
+then
+    mysqlpassword="123456"
+fi
+echo "run:
+	docker build -t nginx nginx
+	docker build -t phpfpm phpfpm
+	docker run --name leto-phpfpm -d -v $wwwroot:/app -d phpfpm
+	docker run --name leto-redis -d daocloud.io/redis
+	docker run --name leto-mysql -e MYSQL_ROOT_PASSWORD=$mysqlpassword -d daocloud.io/mysql
+
+stop:
+	docker stop leto-redis
+	docker stop leto-mysql
+	docker stop leto-phpfpm
+	docker stop leto-server
+
+clean:
+	make stop
+	docker rm leto-redis
+	docker rm leto-mysql
+	docker rm leto-phpfpm
+	docker rm leto-server
+
+restart:
+	docker restart leto-phpfpm
+	docker restart leto-redis
+	docker restart leto-mysql
+	docker restart leto-nginx
+
+install:
+	docker run --name leto-nginx -p $serverport:80 --link leto-phpfpm:phpfpm --link leto-redis:redis --link leto-mysql:mysql --volumes-from leto-phpfpm -d nginx
+	docker ps" > Makefile
