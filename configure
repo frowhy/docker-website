@@ -123,22 +123,23 @@ fi
 echo "run:
 	docker build -t nginx nginx
 	docker build -t phpfpm phpfpm
-	docker run --name leto-phpfpm -d -v $wwwroot:/app -d phpfpm
+	docker build -t mysql mysql
 	docker run --name leto-redis -d daocloud.io/redis
-	docker run --name leto-mysql -e MYSQL_ROOT_PASSWORD=$mysqlpassword -d daocloud.io/mysql
+	docker run --name leto-mysql -e MYSQL_ROOT_PASSWORD=$mysqlpassword -d mysql
+	docker run --name leto-phpfpm --link leto-redis:redis --link leto-mysql:mysql -d -v $wwwroot:/app -d phpfpm
 
 stop:
 	docker stop leto-redis
 	docker stop leto-mysql
 	docker stop leto-phpfpm
-	docker stop leto-server
+	docker stop leto-nginx
 
 clean:
 	make stop
 	docker rm leto-redis
 	docker rm leto-mysql
 	docker rm leto-phpfpm
-	docker rm leto-server
+	docker rm leto-nginx
 
 restart:
 	docker restart leto-phpfpm
@@ -147,5 +148,5 @@ restart:
 	docker restart leto-nginx
 
 install:
-	docker run --name leto-nginx -p $serverport:80 --link leto-phpfpm:phpfpm --link leto-redis:redis --link leto-mysql:mysql --volumes-from leto-phpfpm -d nginx
+	docker run --name leto-nginx -p $serverport:80 --link leto-phpfpm:phpfpm --volumes-from leto-phpfpm -d nginx
 	docker ps" > Makefile
